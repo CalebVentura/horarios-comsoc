@@ -13,6 +13,18 @@ const extraerTexto = async (pathFile) => {
     return dataText
 }
 
+const generarObjCursos = (dataText) => {
+    const regExCodCurso = /[BCE][A-Z]{1,2}\d{2,3}/g
+    const arrayCodCursos = dataText.match(regExCodCurso)
+    let arrayContenidoCursos = []
+    for (let i = 0; i<arrayCodCursos.length; i++) {
+        arrayContenidoCursos.push(arrayCodCursos[i] + ' ' + dataText.split(arrayCodCursos[i])[1].split(arrayCodCursos[i + 1])[0].trim())
+    }
+    console.log(arrayContenidoCursos)
+    // Aquí abajo recorremos cada uno de esos elementos del  arrayContenidoCursos para generar el objeto de cada curso
+
+}
+
 // Ejecución secuencial de funciones
 (async () => {
     const pathFile = './horarios.pdf'
@@ -24,4 +36,7 @@ const extraerTexto = async (pathFile) => {
     fs.writeFile('./texto.txt', dataText, (err) => {
         if (err) throw err;
     });
+
+    // Generar el objeto de cursos
+    generarObjCursos(dataText)
 })()
