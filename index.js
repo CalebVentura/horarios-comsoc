@@ -80,5 +80,10 @@ const generarObjCursos = (dataText) => {
 
     // Generar el objeto de cursos
     const arrayCursos = generarObjCursos(dataText)
-    console.log(arrayCursos)
+    // console.log(arrayCursos)
+
+    // Guardar el objeto de cursos en un .json
+    fs.writeFile('./objetoCursos.json', JSON.stringify(arrayCursos), (err) => {
+        if (err) throw err;
+    });
 })()
