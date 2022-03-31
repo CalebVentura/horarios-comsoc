@@ -32,17 +32,36 @@ const generarObjCursos = (dataText) => {
     let arrayCursos = []
 
     // Recorremos cada código de curso
-    for (let i = 0; i<arrayCodCursos.length; i++) {
+    for (let i = 0; i < arrayCodCursos.length; i++) {
 
         // Para visualizar el contenido de cada curso (linea)
         const contenidoCurso = dataText.split(arrayCodCursos[i])[1].split(arrayCodCursos[i + 1])[0].trim()
 
         // Al arreglo arrayCursos le añadimos objetos que contengan los datos de cada curso
         const cod = arrayCodCursos[i]
+        const nombreCurso = (() => {
+            const nom = contenidoCurso.match(/^[A-Z]\D+(\((L1|L2|L3)?[,]?(L1|L2|L3)\))?\s?[NMPOQRST](T|P|P\/L|L)\D+/)
+            if (nom !== null) return nom[0].slice(0, -2)
+            else {
+                // console.log(contenidoCurso)
+                return ''
+            }
+        })()
+        const seccion = 'M'
+        const tipo = 'T'
+        const dia = 'LU'
         const horario = (() => {
             // const hor = contenidoCurso.match(/\d{2}[.:]\d{2}\s?[-]\s?\d{2}[.:]\d{1,2}/g)
             const hor = contenidoCurso.match(/\d{2}[:]/g)
-            if (hor !== null) return hor.map(h => h.slice(0,-1))
+            if (hor !== null) return hor.map(h => h.slice(0, -1))
+            else {
+                // console.log(contenidoCurso)
+                return ''
+            }
+        })()
+        const docente = (() => {
+            const doc = contenidoCurso.match(/0([A-Z].+[,].+)/g)
+            if (doc !== null) return doc[0].slice(1)
             else {
                 // console.log(contenidoCurso)
                 return ''
@@ -55,8 +74,13 @@ const generarObjCursos = (dataText) => {
 
         arrayCursos.push({
             cod,
+            nombreCurso,
+            seccion,
+            tipo,
+            dia,
             horario,
-            contenidoCurso,
+            docente,
+            // contenidoCurso,
         })
 
         dataText = dataText.replace(arrayCodCursos[i], '').replace(contenidoCurso, '')
@@ -64,6 +88,21 @@ const generarObjCursos = (dataText) => {
         //...Por mejorar
     }
     return arrayCursos
+}
+
+const agruparCursos = (arrayCursos) => {
+    let nuevoArray = []
+    let arrayTemporal = []
+    for (let i = 0; i < arrayCursos.length; i++) {
+        arrayTemporal = nuevoArray.filter(resp => resp["Nombre"] === arrayCursos[i]["cod"])
+        if (arrayTemporal.length > 0) {
+            nuevoArray[nuevoArray.indexOf(arrayTemporal[0])]["secciones"].push(arrayCursos[i])
+        } else {
+            nuevoArray.push({ "Nombre": arrayCursos[i]["cod"], "secciones": [arrayCursos[i]] })
+        }
+    }
+
+    return nuevoArray
 }
 
 // Ejecución secuencial de funciones
@@ -80,10 +119,15 @@ const generarObjCursos = (dataText) => {
 
     // Generar el objeto de cursos
     const arrayCursos = generarObjCursos(dataText)
-    // console.log(arrayCursos)
+    console.log(arrayCursos[45])
 
     // Guardar el objeto de cursos en un .json
     fs.writeFile('./objetoCursos.json', JSON.stringify(arrayCursos), (err) => {
+        if (err) throw err;
+    });
+
+    const cursosAgrupados = agruparCursos(arrayCursos)
+    fs.writeFile('./cursosAgrupados.json', JSON.stringify(cursosAgrupados), (err) => {
         if (err) throw err;
     });
 })()
