@@ -1,5 +1,5 @@
 // Librerías nativas
-const fs = require('fs')
+const fs = require('fs') // Este modulo me permite administrar los archivos locales.  Leer, escribir, etc.
 
 // Librería de terceros
 const reader = require('any-text');
