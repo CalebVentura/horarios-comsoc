@@ -19,7 +19,6 @@ const extraerTexto = async (pathFile) => {
     return dataText
 }
 
-
 const generarObjCursos = (dataText) => {
     // Expresion regular para codigos de cursos
     const regExpCodCurso = /[BCE][A-Z]{1,2}\d{2,3}/g
@@ -118,9 +117,9 @@ const agruparCursos = (arrayCursos) => {
     const dataText = await extraerTexto(pathFile)
 
     // Guardar el texto extraido en un .txt
-    fs.writeFile('./texto.txt', dataText, (err) => {
-        if (err) throw err;
-    });
+    // fs.writeFile('./texto.txt', dataText, (err) => {
+    //     if (err) throw err;
+    // });
 
     // Generar el objeto de cursos
     const arrayCursos = generarObjCursos(dataText)
@@ -132,7 +131,7 @@ const agruparCursos = (arrayCursos) => {
     });
 
     const cursosAgrupados = agruparCursos(arrayCursos)
-    fs.writeFile('./cursosAgrupados.json', JSON.stringify(cursosAgrupados), (err) => {
-        if (err) throw err;
-    });
+    // fs.writeFile('./cursosAgrupados.json', JSON.stringify(cursosAgrupados), (err) => {
+    //     if (err) throw err;
+    // });
 })()

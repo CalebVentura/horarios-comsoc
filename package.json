@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "any-text": "^1.2.0"
+    "any-text": "^1.2.0",
+    "csvtojson": "^2.0.10",
+    "lodash": "^4.17.21"
   }
 }
