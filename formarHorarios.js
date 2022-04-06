@@ -4,7 +4,6 @@ const fs = require('fs');
 // TERCEROS
 const _ = require('lodash')
 
-
 // cursos que el usuario puede o quiere llevar
 const posiblesCursos = ['EE467', 'EE530', 'EE590', 'BEG06']
 
