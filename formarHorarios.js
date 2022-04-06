@@ -1,59 +1,107 @@
+// NATIVOS
 const fs = require('fs');
 
-const posiblesCursos = ['BMA22', 'EE418', 'EE420', 'EE428', 'EE522', 'EE647']
-const seccionesGenerales = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T']
+// TERCEROS
+const _ = require('lodash')
 
 
+// cursos que el usuario puede o quiere llevar
+const posiblesCursos = ['EE467', 'EE530', 'EE590', 'BEG06']
+
+// Funcion para agrupar cursos por CODIGO
+const cantidadDeCursosDistintos = (arrayCursos) => {
+    const cursosAgrupados = _.chain(arrayCursos)
+        .groupBy("CODIGO")
+        .map((value, key) => (key)).value()
+    return cursosAgrupados.length
+}
+
+// Funcion para obtener las secciones distintas de un solo curso
+const obtenerSeccionesDistintas = (arrayCursos) => {
+    const cursosAgrupados = _.chain(arrayCursos)
+        .groupBy("SECCION")
+        .map((value, key) => (key)).value()
+    return cursosAgrupados
+}
+
+// curso-seccion
+const cursoSeccionArbolHorarios = (arrayCursos) => {
+    const cursosAgrupados = _.chain(arrayCursos)
+        .groupBy("CODIGO")
+        .map((value, key) => ({ CODIGO: key, SECCION: value.SECCION })).value()
+    return cursosAgrupados.length
+}
+
+// Obtener los cursos-seccion de los horarios generales
 const cursosHorario = JSON.parse(fs.readFileSync('./horarioCursos.json', 'utf8'))
 
+// Arreglo de todos los cursos-seccion que coinciden con lo ingresado por el usuario
 let cursos = []
 for (codigo of posiblesCursos) {
     cursos.push(cursosHorario.filter((curso) => curso.CODIGO === codigo))
 }
 
-// fs.writeFile('./cursosPrueba.json',JSON.stringify(cursos), (err) => {
-//     if (err) throw err;
-// });
+// Arbol de horarios
+let horariosTotales = [[]]
 
-let horarioTotales = []
+// El arbol empieza con curso 0 seccion M
+for (const curso of cursos[0]) {
+    if (curso.SECCION === 'M') horariosTotales[0].push(curso)
+}
 
-for (const sec of seccionesGenerales) {
+// bucle por cursos
+for (let i = 1; i < cursos.length; i++) {
 
-    let horarios = []
+    const seccionesDelCurso = obtenerSeccionesDistintas(cursos[i])
 
-    for (const curso of cursos[0]) {
-        if (curso.SECCION === 'M') horarios.push(curso)
-    }
+    // bucle por secciones de cada curso
+    for (const sec of seccionesDelCurso) {
+        // Obtener un array de horarios con el curso y sección especificada
+        // cursos[i] contiene los horarios del curso específico con todas las secciones
+        const cursoSecc = cursos[i].filter(cur => cur.SECCION === sec)
 
-    let texto = [
-        { codigo: 'EE712', seccion: 'M' },
-    ]
+        if (typeof cursoSecc[0] !== 'undefined') {
 
-    for (let i = 1; i < 3; i++) {
-        const secc = cursos[i].filter(cur => cur.SECCION === sec)
-        if (typeof secc[0] !== 'undefined') {
-            let interseccion = [0]
-            secc.forEach(elem => {
-                horarios.forEach(dh => {
-                    // console.log(elem.DIAHORA)
-                    inter = dh.DIAHORA.filter(b => {
-                        // console.log(b);
-                        return elem.DIAHORA.includes(b)
-                    })
-                    interseccion.push(inter.length)
-                })
+            // Buscar intersecciones
+            // El curso i se coompara con los arreglos dentro de horarioTotales donde la cantida dde cursos sea i
+
+            // Obtenemos los arreglos de horarioTotales de donde la cantidad de cursos sea i
+            const horariosDeLongitudi = horariosTotales.filter(hor => {
+                const cursosDistintos = cantidadDeCursosDistintos(hor)
+                return cursosDistintos === i
             })
-            const suma = interseccion.reduce((summa, elem) => summa + elem)
-            if (suma === 0) {
-                texto.push({ codigo: secc[0].CODIGO, seccion: secc[0].SECCION })
-                secc.forEach(elem => horarios.push(elem))
-                // horarioTotales = [...horarioTotales, horarios]
-                // console.log(texto)
+
+            // recorremos cada arreglo donde la cantidad de cursos sea i
+            for (const horarioDeLongitudi of horariosDeLongitudi) {
+                // variable que me indicará la cantidad de cruces
+                let interseccion = [0]
+
+                //  Buscando cruuces.El curso-dia-hora que añadiré no se cruza con otros ya existentes en el arreglo de cantidad de cursos i
+                cursoSecc.forEach(horarioCursoSecc => {
+                    horarioDeLongitudi.forEach(objHorarioDeLongitudi => {
+                        const inter = objHorarioDeLongitudi.DIAHORA.filter(b => horarioCursoSecc.DIAHORA.includes(b))
+                        interseccion.push(inter.length)
+                    })
+                })
+
+                const suma = interseccion.reduce((summa, elem) => summa + elem)
+                if (suma === 0) horariosTotales.push([...cursoSecc, ...horarioDeLongitudi])
             }
-            // console.log(interseccion)
-            // console.log(suma)
-            // console.log(horarios.length + '\n\n')
         }
     }
-    console.log(texto)
 }
+
+const textoMostrar = []
+horariosTotales.forEach(hor => {
+    let curseccc = hor.map(cur => {
+        return { CODIGO: cur.CODIGO, SECCION: cur.SECCION }
+    })
+    let hash = {}
+    curseccc = curseccc.filter(o => hash[o.CODIGO] ? false : hash[o.CODIGO] = true)
+
+    if(curseccc.length === posiblesCursos.length) {
+        textoMostrar.push(curseccc)
+    }
+})
+
+console.log(textoMostrar)
