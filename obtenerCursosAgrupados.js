@@ -103,20 +103,23 @@ const generarObjCursos = (dataText) => {
 }
 
 const agruparCursos = (arrayCursos) => {
-    let nuevoArray = []
-    let arrayTemporal = []
-    for (let i = 0; i < arrayCursos.length; i++) {
-        arrayTemporal = nuevoArray.filter(resp => resp["Nombre"] === arrayCursos[i]["cod"])
-        if (arrayTemporal.length > 0) {
-            nuevoArray[nuevoArray.indexOf(arrayTemporal[0])]["secciones"].push(arrayCursos[i])
-        } else {
-            nuevoArray.push({ "Nombre": arrayCursos[i]["cod"], "secciones": [arrayCursos[i]] })
-        }
+    const cursosAgrupados = _.chain(arrayCursos).groupBy("CODIGO").map((value, key) => ({ CODIGO: key, SECCIONES: value })).value()
+    for (const curso of cursosAgrupados) {
+        curso.SECCIONES = _.chain(curso.SECCIONES).groupBy("SECCION").map((value, key) => ({ SECCION: key, HORARIOS: value })).value()
     }
-
-    return nuevoArray
+    return cursosAgrupados
 }
 
+const agregaarDiaHora = (horarioCursos) => {
+    for (const curso of horarioCursos) {
+        const horasx = curso.HORA.match(/[0-9]{2}[:.;]/g).map(hora => parseInt(hora.slice(0, -1)))
+        curso.DIAHORA = []
+        for ( let i = horasx[0]; i < horasx[1]; i++ ) {
+            curso.DIAHORA.push(curso.DIA + i)
+        }
+    }
+    return horarioCursos
+}
 // Ejecución secuencial de funciones
 (async () => {
     // // const pathFile = './files/horarios.pdf'
@@ -134,12 +137,13 @@ const agruparCursos = (arrayCursos) => {
     // // });
 
     const horarioCursos = await csvtojson().fromFile(`./files/HORARIO221.csv`)
-    fs.writeFile('./horarioCursos.json', JSON.stringify(horarioCursos), (err) => {
+    const horarioCursosModificado = agregaarDiaHora(horarioCursos)
+    fs.writeFile('./horarioCursos.json', JSON.stringify(horarioCursosModificado), (err) => {
         if (err) throw err;
     });
 
     const cursosAgrupados = agruparCursos(horarioCursos)
-    fs.writeFile('./horarioCursosAgrupados.json', JSON.stringify(cursosAgrupados), (err) => {
-        if (err) throw err;
-    });
+    // fs.writeFile('./horarioCursosAgrupados.json', JSON.stringify(cursosAgrupados), (err) => {
+    //     if (err) throw err;
+    // });
 })()
