@@ -1,0 +1,24 @@
+// INGRESAR SUS CURSOS Y SECCIONES PROBABLES: 
+    // EE112 N,M,P
+    // Cantidad de creditos (26)
+    // Elegir los días que desea tener clases
+    // Elegir horarios que desea tener clases
+
+// CRITERIOS
+
+PROHIBIDO POR UNIVERSIDAD
+- Cruce de cursos P-P , P-L, P-P/L, L-P/L
+- No superar la cantidad de creditos
+
+CRITERIOS DE ESTUDIANTE
+- Que se respete la sección que el eestudiante desea
+- Cursos en días elegidos
+
+// GENERAR ES LOS POSBLES HORARIOS
+
+
+ACTIVIDAD O TAREA
+- Revisar el codigo
+- GENEREN UN DIAGRAMA DE FLUJO PARA GENERAR HORARIOS
+
+

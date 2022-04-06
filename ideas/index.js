@@ -1,5 +1,5 @@
 // Librerías nativas
-const fs = require('fs')
+const fs = require('fs') // Este modulo me permite administrar los archivos locales.  Leer, escribir, etc.
 
 // Librería de terceros
 const reader = require('any-text');
@@ -8,10 +8,10 @@ const reader = require('any-text');
 const extraerTexto = async (pathFile) => {
     // Inicializamos una variable dataText sin contenido
     let dataText = ''
+    
 
     // Extraemos el texto del pdf
     await reader.getText(pathFile).then(function (data) {
-
         // A la variable dataText le añadimos todo el texto que resulta del pdf
         // Vamos a reemplazar todo caracter de espacios de más, saltos de linea, tabulaciones, etc por un solo espacio
         dataText += data.replace(/(\n|\r|\t|\s{2,})/g, ' ')
@@ -21,11 +21,13 @@ const extraerTexto = async (pathFile) => {
 
 const generarObjCursos = (dataText) => {
     // Expresion regular para codigos de cursos
-    const regExCodCurso = /[BCE][A-Z]{1,2}\d{2,3}/g
+    const regExpCodCurso = /[BCE][A-Z]{1,2}\d{2,3}/g
+    const regExpNomCurso = /^[A-Z]\D+(\((L1|L2|L3)?[,]?(L1|L2|L3)\))?\s?[NMPOQRST](T|P|P\/L|L)\D+/
+    const regExpHorarioCurso = /\d{2}[:]/g
+    const regExpDocenteCurso = /0([A-Z].+[,].+)/g
 
     // Buscamos todos los códigos de cursos que hay en el texto extraido
-    const arrayCodCursos = dataText.match(regExCodCurso)
-
+    const arrayCodCursos = dataText.match(regExpCodCurso)
     // console.log(arrayCodCursos)
 
     // Inicializamos un arreglo vacio donde estarán los objetos de cada curso
@@ -40,19 +42,20 @@ const generarObjCursos = (dataText) => {
         // Al arreglo arrayCursos le añadimos objetos que contengan los datos de cada curso
         const cod = arrayCodCursos[i]
         const nombreCurso = (() => {
-            const nom = contenidoCurso.match(/^[A-Z]\D+(\((L1|L2|L3)?[,]?(L1|L2|L3)\))?\s?[NMPOQRST](T|P|P\/L|L)\D+/)
+            const nom = contenidoCurso.match(regExpNomCurso)
             if (nom !== null) return nom[0].slice(0, -2)
             else {
                 // console.log(contenidoCurso)
                 return ''
             }
         })()
+        const creditos = 3
         const seccion = 'M'
         const tipo = 'T'
         const dia = 'LU'
         const horario = (() => {
             // const hor = contenidoCurso.match(/\d{2}[.:]\d{2}\s?[-]\s?\d{2}[.:]\d{1,2}/g)
-            const hor = contenidoCurso.match(/\d{2}[:]/g)
+            const hor = contenidoCurso.match(regExpHorarioCurso)
             if (hor !== null) return hor.map(h => h.slice(0, -1))
             else {
                 // console.log(contenidoCurso)
@@ -60,7 +63,7 @@ const generarObjCursos = (dataText) => {
             }
         })()
         const docente = (() => {
-            const doc = contenidoCurso.match(/0([A-Z].+[,].+)/g)
+            const doc = contenidoCurso.match(regExpDocenteCurso)
             if (doc !== null) return doc[0].slice(1)
             else {
                 // console.log(contenidoCurso)
@@ -75,6 +78,7 @@ const generarObjCursos = (dataText) => {
         arrayCursos.push({
             cod,
             nombreCurso,
+            creditos,
             seccion,
             tipo,
             dia,
@@ -83,7 +87,7 @@ const generarObjCursos = (dataText) => {
             // contenidoCurso,
         })
 
-        dataText = dataText.replace(arrayCodCursos[i], '').replace(contenidoCurso, '')
+        // dataText = dataText.replace(arrayCodCursos[i], '').replace(contenidoCurso, '')
 
         //...Por mejorar
     }
@@ -113,13 +117,13 @@ const agruparCursos = (arrayCursos) => {
     const dataText = await extraerTexto(pathFile)
 
     // Guardar el texto extraido en un .txt
-    fs.writeFile('./texto.txt', dataText, (err) => {
-        if (err) throw err;
-    });
+    // fs.writeFile('./texto.txt', dataText, (err) => {
+    //     if (err) throw err;
+    // });
 
     // Generar el objeto de cursos
     const arrayCursos = generarObjCursos(dataText)
-    console.log(arrayCursos[45])
+    // console.log(arrayCursos[45])
 
     // Guardar el objeto de cursos en un .json
     fs.writeFile('./objetoCursos.json', JSON.stringify(arrayCursos), (err) => {
@@ -127,7 +131,7 @@ const agruparCursos = (arrayCursos) => {
     });
 
     const cursosAgrupados = agruparCursos(arrayCursos)
-    fs.writeFile('./cursosAgrupados.json', JSON.stringify(cursosAgrupados), (err) => {
-        if (err) throw err;
-    });
+    // fs.writeFile('./cursosAgrupados.json', JSON.stringify(cursosAgrupados), (err) => {
+    //     if (err) throw err;
+    // });
 })()
